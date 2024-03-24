@@ -87,16 +87,22 @@ class Interpreter():
             print("CX: "+str(self.PROC.P_GET(self.PROC.CX)))
         elif code[1] == "STAT":  # Display Registers
             print("$$$(ExecutionInfo 'STAT') Displaying the value in the registers")
-            AX, BX, CX, DX = self.PROC.GET_ALL()
-            print(f"AX: {str(AX)}\nBX: {str(BX)}\nCX: {str(CX)}\nDX: {str(DX)}")
+            AX, BX, CX, DX, carry, ZEROFLAG = self.PROC.GET_ALL()
+            print(f"AX: {str(AX)}")
+            print(f"BX: {str(BX)}")
+            print(f"CX: {str(CX)}")
+            print(f"DX: {str(DX)}")
+            print(f"Carry: {str(carry)}")
+            print(f"ZEROFLAG: {str(ZEROFLAG)}")
         elif code[1] == "STO":  # Store value in the specified register
             Reg, ERRORCODE = ConvertREG(code[3], self.PROC)
             self.errors = ERRORHANDLER(ERRORCODE, code[0], self.src, self.errors)
             BitData, ERRORCODE = ConvertDataToBit(code[2])
             self.errors = ERRORHANDLER(ERRORCODE, code[0], self.src, self.errors)
+            Value = code[2].replace("INT", "") # Removing INT from the shown string	
             if self.errors == 0:
                 self.PROC.P_STORE(BitData, Reg)
-                print(f"$$$(ExecutionInfo 'STO') Storing {code[2]} in {code[3]}")
+                print(f"$$$(ExecutionInfo 'STO') Storing {Value} in {code[3]}")
         elif code[1] == "MOV":  # Move the value of a register to another
             RegIn, ERRORCODE = ConvertREG(code[2], self.PROC)
             self.errors = ERRORHANDLER(ERRORCODE, code[0], self.src, self.errors)

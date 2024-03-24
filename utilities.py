@@ -1,5 +1,12 @@
 # MOHAMED NASRAOUI
 # Define a function to convert data to bits
+
+def decimalToBinary(Value): 
+    binary = "{0:b}".format(Value)
+    while len(binary)!=4:
+        binary = "0" + binary
+    return binary
+
 def ConvertDataToBit(data):
     """
     Convert data to a list of bits.
@@ -11,12 +18,20 @@ def ConvertDataToBit(data):
         list: List of bits representing the data.
         int: Error code (0 if successful, -1 otherwise).
     """
+    if data[0:3] == "INT" and data[3:].isnumeric() == True:
+        Value = int(data[3:])
+        data = decimalToBinary(Value)
     BitData = []
     ERRORCODE = -1
+    ValidBitValue = True 
     if len(data) == 4 and data.isnumeric() == True:
         for i in range(4):
+            if int(data[i])!=0 and int(data[i])!=1:# Verify that the value to store are 0 or 1
+                ValidBitValue = False
             BitData.append(int(data[i]))
-        ERRORCODE = 0
+        if ValidBitValue == True:
+            ERRORCODE = 0
+
     return BitData, ERRORCODE
 
 # Define a function to convert register names to processor registers
