@@ -81,6 +81,10 @@ def ERRORDICT(ERRORCODE, line, src):
         print(f">>>InterpreterError at line {line} in {src}: Invalid syntax, unknown command.")
     if ERRORCODE == -4:
         print(f">>>InterpreterError at line {line} in {src}: Unexpected START label found. When using START, commands must be written inside labels.")
+    if ERRORCODE == -5:
+        print(f">>>InterpreterError at line {line} in {src}: Invalid module format in the INCLUDE header.")
+    if ERRORCODE == -6:
+        print(f">>>InterpreterError at line {line} in {src}: Invalid module, module not found.")
 
 # Define a function to handle errors during interpretation
 def ERRORHANDLER(ERRORCODE, line, src, errornum):
@@ -116,7 +120,30 @@ def SplitCode(code):
     section = []
     for i in range(len(code)):
         section.append(code[i])
-        if code[i][1] == "END" or i == len(code) - 1:
+        if code[i][1] == "END" or i == len(code) - 1 or code[i][1][0] == "#":
             result.append(section)
             section = []
     return result
+
+def returnsrc(module, line, src, errors):
+    modulesrc = ""
+    if module[0] == '<':
+        module = module.replace("<", "").replace(">", "")
+        modulesrc = "./Libraries/"+module+".nas"
+        try:
+            with open(modulesrc, 'r') as file:
+                pass
+        except Exception:
+            errors = ERRORHANDLER(-6, line, src, errors)
+    elif module[0] == '"':
+        module = module.replace('"', "")
+        modulesrc = module
+        try:
+            with open(modulesrc, 'r') as file:
+                pass
+        except Exception:
+            errors = ERRORHANDLER(-6, line, src, errors)
+    else:
+        errors = ERRORHANDLER(-5, line, src, errors)
+
+    return modulesrc, errors

@@ -33,9 +33,25 @@ class Interpreter():
         Execute the instructions from the source file.
         """
         code = self.lexer.lex()  # Tokenize the source code
-        code = self.parser.pars(code)  # Parse the tokenized code
+        code, headers = self.parser.pars(code)  # Parse the tokenized code
+
+        for header in headers:
+            if header[1]=='INCLUDE':
+                # Include modules
+                line = header[0]
+                MODULESRC = header[2]
+                MODULESRC, self.errors = returnsrc(MODULESRC, line, self.src, self.errors)
+                if self.errors == 0:
+                    MODULEINTERPRETER = Interpreter(MODULESRC, self.verbose)
+                    MODULEINTERPRETER.run()
+                    LabelsToInclude = MODULEINTERPRETER.labels
+                    for label in LabelsToInclude:
+                        self.labels.append(label)
+
         for i in range(len(code)):
+            #print(code[i][3])
             for j in range(len(code[i][3])):
+                # print(code[i][3][j]) # For debugging reasons
                 if code[i][3][j][1]=='START':
                     # Check for unexpected START label
                     self.errors = ERRORHANDLER(-4, code[i][3][j-1][0], self.src, self.errors)
@@ -45,12 +61,12 @@ class Interpreter():
                 print(code)  # Print the parsed code
             # Get current timestamp
             current_time = datetime.now().strftime("%b %-d %Y, %H:%M:%S:%f")
-            print(f"\nExecuting started at {current_time}\n--------------------------------------------------")
+            print(f"\nExecution of {self.src} started at {current_time}\n--------------------------------------------------")
             for i in range(len(code)):
                 if self.errors == 0:  # If no errors occurred
                     self.labelize(code[i])  # Labelize the code section
             current_time = datetime.now().strftime("%b %-d %Y, %H:%M:%S:%f")
-            print(f"--------------------------------------------------\nExecution Ended at {current_time}\n")
+            print(f"--------------------------------------------------\nExecution of {self.src} Ended at {current_time}\n")
 
     # Method to process labels in the code
     def labelize(self, code):
@@ -61,7 +77,6 @@ class Interpreter():
             code (list): List representing a section of code from the source file.
         """
         if code[2] == 'MAIN':  # If the code section is the main program
-            print("-------------------------")
             print("$$$(ExecutionInfo 'MAIN') Started")
             for j in range(len(code[3])):
                 if self.errors == 0:  # If no errors occurred
@@ -122,6 +137,8 @@ class Interpreter():
                 for cmd in cmds:
                     self.execute(cmd)  # Execute each instruction in the labeled section
             print(f"$$$(ExecutionInfo 'DO') Execution of Label {ExecLabel[0]} ended\n")
+        elif code[1] == "INCLUDE":
+        	pass
         else:
             print(code)
             self.errors = ERRORHANDLER(-3, code[0], self.src, self.errors)  # Handle unknown syntax error
@@ -158,7 +175,7 @@ class Lexer():
         for i in range(lines_count):
             unlexed_code[i] = unlexed_code[i].replace("\n", "")  # Remove newline characters
             if unlexed_code[i] != "":  # If the line is not empty
-                if unlexed_code[i][0] != "$":  # If it's not a comment line
+                if unlexed_code[i][0] != "$":  # If it's not a comment line	
                     self.code.append([i+1, unlexed_code[i]])  # Append line number and code to the tokenized list
         return self.code  # Return the tokenized code
 
@@ -175,6 +192,7 @@ class Parser():
         Initialize the Parser object.
         """
         self.parsed_code = []  # Initialize a list to store parsed code
+        self.headers = [] # Initialize a list to store modules
 
     # Method to parse the tokenized code
     def pars(self, code):
@@ -188,24 +206,31 @@ class Parser():
             list: List containing parsed code.
         """
         code = SplitCode(code)  # Split the tokenized code into sections
+        # print(code)
         labels_count = len(code)  # Get the number of sections
         for i in range(labels_count):
             label = code[i][0][1].split(" ")  # Split the label line into tokens
-            if label[0] == "START":  # If it's a START label
-                code[i].pop()  # Remove the 'END' label line
-                labelcmd = [code[i][0][0], 'LABEL', label[1], []]  # Create a label command to define the label
-                for j in range(1, len(code[i])):
-                    line = code[i][j][0]
-                    cmd = code[i][j][1].split(" ")  # Split the command line into tokens
-                    cmd.insert(0, line)  # Insert the line number at the beginning
-                    labelcmd[3].append(cmd)  # Append the command to the label command list
-                self.parsed_code.append(labelcmd)  # Append the label command to the parsed code
+            if label[0] == "#INCLUDE":
+            	Includecmd = [code[i][0][0], 'INCLUDE', label[1]]
+            	self.headers.append(Includecmd)
+            	#print(code[i])
+
             else:
-                cmds = []
-                for j in range(len(code[i])):
-                    line = code[i][j][0]
-                    cmd = code[i][j][1].split(" ")  # Split the command line into tokens
-                    cmd.insert(0, line)  # Insert the line number at the beginning
-                    cmds.append(cmd)  # Append the command to the command list
-                self.parsed_code.append([code[i][0][0], 'LABEL', 'MAIN', cmds])  # Append the MAIN Label to the parsed code
-        return self.parsed_code  # Return the parsed code
+                if label[0] == "START":  # If it's a START label
+                    code[i].pop()  # Remove the 'END' label line
+                    labelcmd = [code[i][0][0], 'LABEL', label[1], []]  # Create a label command to define the label
+                    for j in range(1, len(code[i])):
+                        line = code[i][j][0]
+                        cmd = code[i][j][1].split(" ")  # Split the command line into tokens
+                        cmd.insert(0, line)  # Insert the line number at the beginning
+                        labelcmd[3].append(cmd)  # Append the command to the label command list
+                    self.parsed_code.append(labelcmd)  # Append the label command to the parsed code
+                else:
+                    cmds = []
+                    for j in range(len(code[i])):
+                        line = code[i][j][0]
+                        cmd = code[i][j][1].split(" ")  # Split the command line into tokens
+                        cmd.insert(0, line)  # Insert the line number at the beginning
+                        cmds.append(cmd)  # Append the command to the command list
+                    self.parsed_code.append([code[i][0][0], 'LABEL', 'MAIN', cmds])  # Append the MAIN Label to the parsed code
+        return self.parsed_code, self.headers  # Return the parsed code
