@@ -3,6 +3,19 @@
 global RegIndex
 RegIndex = [3, 2, 1, 0]
 
+# 1 Bit Register
+class Bit():
+    def __init__(self):
+        self.data = 0
+
+    # Method to store values into the register
+    def STORE(self, Value):
+        self.data = Value
+
+    # Method to clear the register
+    def CLEAR(self):
+        self.data = 0
+
 # Register class representing a generic register
 class Register():
     def __init__(self):
@@ -59,8 +72,8 @@ class Processor():
         self.BX = Register()
         self.CX = Register()
         self.DX = Register()
-        self.carry = 0
-        self.ZEROFLAG = 0
+        self.carry = Bit()
+        self.ZEROFLAG = Bit()
         self.ALU = ALU()
 
     # Method to clear all registers and ALU
@@ -69,28 +82,28 @@ class Processor():
         self.BX.CLEAR()
         self.CX.CLEAR()
         self.DX.CLEAR()
-        self.carry = 0
-        self.ZEROFLAG = 0
+        self.carry.CLEAR()
+        self.ZEROFLAG.CLEAR()
         self.ALU.CLEAR()
 
     # Method to perform addition operation
     def P_ADD(self):
         self.ALU.ADD(self.AX.data, self.BX.data)
         self.CX.STORE(self.ALU.result)
-        self.carry = self.ALU.carry
+        self.carry.data = self.ALU.carry
 
     # Method to perform subtraction operation
     def P_SUBTRACT(self):
         self.ALU.SUBTRACT(self.AX.data, self.BX.data)
         self.CX.STORE(self.ALU.result)
-        self.carry = self.ALU.carry
+        self.carry.data = self.ALU.carry
 
     # Method to perform comparison
     def P_CMP(self):
     	self.ALU.COMPARE(self.AX.data, self.BX.data)
     	self.CX.STORE(self.ALU.result)
-    	self.carry = self.ALU.carry
-    	self.ZEROFLAG = self.ALU.ZEROFLAG
+    	self.carry.data = self.ALU.carry
+    	self.ZEROFLAG.data = self.ALU.ZEROFLAG
 
     # Method to store values into a register
     def P_STORE(self, Value, Reg):
@@ -114,4 +127,4 @@ class Processor():
 
     # Method to get data from all registers
     def GET_ALL(self):
-        return self.AX.data, self.BX.data, self.CX.data, self.DX.data, self.carry, self.ZEROFLAG
+        return self.AX.data, self.BX.data, self.CX.data, self.DX.data, self.carry.data, self.ZEROFLAG.data

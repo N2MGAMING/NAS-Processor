@@ -32,7 +32,7 @@ while running == True:
         print("Instructions in source file:")
         print("  Each line of the source file should contain an instruction to be executed.")
         print("  Instructions must be compatible with the NAS processor's instruction set.")
-        print("  Example instructions: , etc.")
+        print("  Follow the syntax given in the file help.nas.")
 
     # Configuring emulator settings
     elif cmd=="config":

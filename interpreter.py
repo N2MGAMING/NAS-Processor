@@ -131,12 +131,42 @@ class Interpreter():
             for label in self.labels:
                 if label[0] == code[2]:
                     ExecLabel = label
-            print(f"\n$$$(ExecutionInfo 'DO') Execution of Label {ExecLabel[0]} started")
+            if ExecLabel==0:
+                self.errors = ERRORHANDLER(-6, code[0], self.src, self.errors)
             if self.errors == 0:
+                print(f"\n$$$(ExecutionInfo 'DO') Execution of Label {ExecLabel[0]} started")
                 cmds = ExecLabel[1]
                 for cmd in cmds:
                     self.execute(cmd)  # Execute each instruction in the labeled section
-            print(f"$$$(ExecutionInfo 'DO') Execution of Label {ExecLabel[0]} ended\n")
+                print(f"$$$(ExecutionInfo 'DO') Execution of Label {ExecLabel[0]} ended")
+                if ExecLabel[0]=="CMP":
+                    if self.PROC.carry.data==0 and self.PROC.ZEROFLAG.data==0:
+                        print("$$$(ExecutionInfo 'CMP') AX = BX")
+                    if self.PROC.carry.data==-1 and self.PROC.ZEROFLAG.data==1:
+                        print("$$$(ExecutionInfo 'CMP') AX < BX")
+                    if self.PROC.carry.data==0 and self.PROC.ZEROFLAG.data==1:
+                        print("$$$(ExecutionInfo 'CMP') AX > BX")
+        elif code[1] == "IFEQUAL":
+            if self.PROC.carry.data==0 and self.PROC.ZEROFLAG.data==0:
+                ExecLabel = 0
+                for label in self.labels:
+                    if label[0] == code[2]:
+                        ExecLabel = label
+                if ExecLabel==0:
+                    self.errors = ERRORHANDLER(-6, code[0], self.src, self.errors)
+                if self.errors == 0:
+                    print(f"\n$$$(ExecutionInfo 'IFEQUAL') Execution of Label {ExecLabel[0]} started")
+                    cmds = ExecLabel[1]
+                    for cmd in cmds:
+                        self.execute(cmd)  # Execute each instruction in the labeled section
+                    if ExecLabel[0]=="CMP":
+                        if self.PROC.carry.data==0 and self.PROC.ZEROFLAG.data==0:
+                            print("$$$(ExecutionInfo 'CMP') AX = BX")
+                        if self.PROC.carry.data==-1 and self.PROC.ZEROFLAG.data==1:
+                            print("$$$(ExecutionInfo 'CMP') AX < BX")
+                        if self.PROC.carry.data==0 and self.PROC.ZEROFLAG.data==1:
+                            print("$$$(ExecutionInfo 'CMP') AX > BX")
+                    print(f"$$$(ExecutionInfo 'IFEQUAL') Execution of Label {ExecLabel[0]} ended\n")
         elif code[1] == "INCLUDE":
         	pass
         else:

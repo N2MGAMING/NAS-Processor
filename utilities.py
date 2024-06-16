@@ -61,6 +61,12 @@ def ConvertREG(Reg, PROC):
     elif Reg == "DX":
         PREG = PROC.DX
         ERRORCODE = 0
+    elif Reg == "CARRY":
+        PREG = PROC.carry
+        ERRORCODE = 0
+    elif Reg == "ZEROFLAG":
+        PREG = PROC.ZEROFLAG
+        ERRORCODE = 0
     return PREG, ERRORCODE
 
 # Define a function to handle error messages
